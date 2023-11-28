@@ -14,9 +14,9 @@ import java.util.ArrayList;
 public class HtmlParser {
 
 
-    String getImageUrlFromWebPage(Document document) {
+    String getImageUrlFromWebPage(Document document,String imgpath) {
         try {
-            Element imgElement = document.select("img[src*='/en/reports/'][alt='com.amazon.mShop.android.shopping logo']").first();
+            Element imgElement = document.select("img[src*='/en/reports/'][alt='"+imgpath+"']").first();
 
             if (imgElement != null) {
                 String imageUrl = imgElement.absUrl("src");
@@ -35,6 +35,7 @@ public class HtmlParser {
         // Extract the trackers
         Elements trackerElements = doc.select("p a.link.black");
         Elements badgeElements = doc.select("span.badge.badge-pill.badge-outline-primary");
+        badgeElements.add(0,null);
 
 
         for (int i = 0; i < trackerElements.size(); i++) {
