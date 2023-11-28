@@ -4,11 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.app.ProgressDialog;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PermissionInfo;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.style.AbsoluteSizeSpan;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -30,6 +34,8 @@ public class MoodleActivity extends AppCompatActivity {
 
     private  String imgpath="com.moodle.moodlemobile logo";
     private String appname="Moodle";
+    private String apppackagename="com.moodle.moodlemobile";
+
     private  String imageurl;
     private String Appurl = "https://reports.exodus-privacy.eu.org/en/reports/com.moodle.moodlemobile/latest/";
 
@@ -68,7 +74,7 @@ public class MoodleActivity extends AppCompatActivity {
 
             trackerList = htmlParser.fetchTrackers(document);
             permissionList = htmlParser.fetchPermissions(document);
-            imageurl = htmlParser.getImageUrlFromWebPage(document,imgpath);
+            imageurl = htmlParser.getImageUrlFromWebPage(document, imgpath);
 
             return null;
         }
@@ -109,15 +115,18 @@ public class MoodleActivity extends AppCompatActivity {
             TextView trackersTextView = findViewById(R.id.trackerscountsTextViewtoatalCounts);
             TextView permissionsTextView = findViewById(R.id.permissionsscountsTextViewtoatalCounts);
 
-            trackersTextView.setText("Trackers Found: "+trackerList.size());
-            permissionsTextView.setText("permissions Found: "+permissionList.size());
+            trackersTextView.setText("Trackers Found : " + trackerList.size());
+            permissionsTextView.setText("Permissions Found : " + permissionList.size());
 
             progressDialog.dismiss();
+            String permissionsgranted =new grantedpermissions(getApplicationContext()).getpermissions(apppackagename);
+            Log.d("permissionssss",permissionsgranted);
+
+
+
 
 
         }
-
-
     }
 
 
@@ -142,7 +151,7 @@ public class MoodleActivity extends AppCompatActivity {
         spannableStringBuilder.setSpan(new AbsoluteSizeSpan(descriptionSize, true), namePart.length() + 1, spannableStringBuilder.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         // Customize the TextView's appearance
-        TextView textView = new TextView(this);
+        TextView textView = new TextView(getApplicationContext());
         textView.setText(spannableStringBuilder);
 
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
@@ -156,7 +165,7 @@ public class MoodleActivity extends AppCompatActivity {
         textView.setLayoutParams(layoutParams);
 
         textView.setPadding(8, 8, 8, 8); // Add padding
-        textView.setBackground(ContextCompat.getDrawable(this, R.drawable.border_bg));
+        textView.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.border_bg));
 
         // Set text color based on the "isDangerous" value
         if (isDangerous) {
@@ -170,7 +179,7 @@ public class MoodleActivity extends AppCompatActivity {
 
 
     private void addTrackerTextView(String trackerData) {
-        TextView textView = new TextView(this);
+        TextView textView = new TextView(getApplicationContext());
         textView.setText(trackerData);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -186,7 +195,7 @@ public class MoodleActivity extends AppCompatActivity {
         // Customize the TextView's appearance
 //        textView.setTextColor(getResources().getColor(android.R.color.white)); // Set text color
         textView.setPadding(8, 8, 8, 8); // Add padding
-        textView.setBackground(ContextCompat.getDrawable(this, R.drawable.border_bg));
+        textView.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.border_bg));
 
         trackerListLinearLayout.addView(textView);
     }
