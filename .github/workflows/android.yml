@@ -31,5 +31,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
+    - name: permission to Gradle
+      run:  chmod +x gradlew
+      
     - name: Build with Gradle
       run: ./gradlew assembleDebug  # Adjust the command to build your app
