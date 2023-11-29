@@ -1,6 +1,7 @@
 package com.example.skillpermissionanalyzer;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -69,8 +70,9 @@ public class HtmlParser {
             String permissionName  = permissionText.text();
             String permissionDescriptionText = (permissionDescription != null) ? permissionDescription.text() : "null";
             boolean isDangerous = permissionElement.select("img[data-toggle='tooltip'][data-placement='top'][title='Protection level: dangerous|instant']").first() !=null;
-
-            String permissionData = "Permission Name: " + permissionName + ",Permission Description: " + permissionDescriptionText + ",isDangerous : " + isDangerous;
+            Attributes attributes = permissionText.attributes();
+            String permission = attributes.get("title");
+            String permissionData = "Permission Name: " + permissionName + ",Permission Description: " + permissionDescriptionText + ",isDangerous : " + isDangerous+",FullAndroidPermisson : "+permission;
             permissionList.add(permissionData);
             Log.d("permission", permissionData);
 

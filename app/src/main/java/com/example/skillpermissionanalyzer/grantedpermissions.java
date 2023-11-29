@@ -51,7 +51,7 @@ public class grantedpermissions  {
                         }
 
                         if (permissionInfo != null) {
-                            permissionsStringBuilder.append(permission+"+");
+                            permissionsStringBuilder.append(permission+":");
                             permissionsStringBuilder.append(permissionInfo.loadLabel(context.getPackageManager()));
                             permissionsStringBuilder.append(",");
                         }

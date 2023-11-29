@@ -1,6 +1,7 @@
 package com.example.skillpermissionanalyzer;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
 import android.app.ProgressDialog;
@@ -10,6 +11,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.style.AbsoluteSizeSpan;
+import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +24,7 @@ import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AmazonActivity extends AppCompatActivity {
 
@@ -31,20 +35,29 @@ public class AmazonActivity extends AppCompatActivity {
 
     private  String imgpath="com.amazon.mShop.android.shopping logo";
     private String appname="Amazon";
+    private String apppackagename="com.moodle.moodlemobile";
+    private HashMap<String , String> grantedlist;
+
     private  String imageurl;
     private String Appurl = "https://reports.exodus-privacy.eu.org/en/reports/com.amazon.mShop.android.shopping/latest/";
+    private  int trackercount=0;
+    private  int dangerouspermissioncount=0;
+
+
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_amazon);
+        setContentView(R.layout.activity_moodle);
 
         // Initialize the ProgressDialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Loading...");
         progressDialog.setCancelable(false);
+
+
 
         // Fetch and display HTML data asynchronously
         new FetchHtmlData().execute();
@@ -54,6 +67,12 @@ public class AmazonActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             // Show the loading spinner before starting the background task
+            grantedlist= new HashMap<>();
+            for(String str:new grantedpermissions(getApplicationContext()).getpermissions(apppackagename).split(","))
+            {
+                String[] spliter=str.split(":");
+                grantedlist.put(spliter[0],spliter[1]);
+            }
             progressDialog.show();
         }
 
@@ -69,7 +88,10 @@ public class AmazonActivity extends AppCompatActivity {
 
             trackerList = htmlParser.fetchTrackers(document);
             permissionList = htmlParser.fetchPermissions(document);
-            imageurl = htmlParser.getImageUrlFromWebPage(document,imgpath);
+            imageurl = htmlParser.getImageUrlFromWebPage(document, imgpath);
+
+
+
 
             return null;
         }
@@ -77,6 +99,9 @@ public class AmazonActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result) {
             // Hide the loading spinner when the task is done
+
+            Log.d("someting",grantedlist.toString());
+
 
             // Find the TextView elements
             ImageView imageView = findViewById(R.id.imageView);
@@ -110,22 +135,47 @@ public class AmazonActivity extends AppCompatActivity {
             TextView trackersTextView = findViewById(R.id.trackerscountsTextViewtoatalCounts);
             TextView permissionsTextView = findViewById(R.id.permissionsscountsTextViewtoatalCounts);
 
-            trackersTextView.setText("Trackers Found: "+trackerList.size());
-            permissionsTextView.setText("permissions Found: "+permissionList.size());
+            trackersTextView.setText("Trackers Found : " + trackerList.size());
+            permissionsTextView.setText("Permissions Found : " + permissionList.size());
 
             progressDialog.dismiss();
+            String permissionsgranted =new grantedpermissions(getApplicationContext()).getpermissions(apppackagename);
 
-            PackageManager packageManager = getPackageManager();
-            String packageName = "com.amazon.mShop.android.shopping"; // Replace this with the package name of the app you want to check
+            ImageView arrowImageView = findViewById(R.id.arrowImageView);
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) arrowImageView.getLayoutParams();
 
-            PermissionHelper permissionHelper = new PermissionHelper();
-            permissionHelper.getPermissionsUsedByApp(packageManager, packageName);
+            int leftMarginInPixels = 0;
 
+
+            leftMarginInPixels+=trackercount*105;
+            leftMarginInPixels+=dangerouspermissioncount*65;
+
+            if(leftMarginInPixels>800)
+            {
+                leftMarginInPixels=800;
+            }
+
+            layoutParams.leftMargin = leftMarginInPixels;
+            arrowImageView.setLayoutParams(layoutParams);
+            TextView textViewresult = findViewById(R.id.privacyscore);
+
+            if(leftMarginInPixels<300)
+            {
+                textViewresult.append("Low");
+            }
+            else if(leftMarginInPixels>=300 && leftMarginInPixels<600)
+            {
+                textViewresult.append("Moderate");
+
+            }
+            else if(leftMarginInPixels>=600)
+            {
+                textViewresult.append("High");
+
+            }
 
 
         }
-
-
     }
 
 
@@ -135,50 +185,84 @@ public class AmazonActivity extends AppCompatActivity {
         String namePart = parts[0].trim();
         String descriptionPart = parts[1].trim();
         boolean isDangerous = Boolean.parseBoolean(parts[2].split(":")[1].trim());
+        String fullandroidpermission=parts[3].split(":")[1].trim();
 
         descriptionPart=descriptionPart.replace("null" , " - ");
+        String text1="can "+descriptionPart.split(":")[1].trim();
+        String text2="Permission: "+namePart.split(":")[1].trim();
 
         // Create a SpannableStringBuilder to customize the appearance of the name and description
-        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(namePart + "\n" + descriptionPart);
+        SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder( text1.toLowerCase() + "\n" + text2);
 
 
         // Set different font sizes for name and description
-        int nameSize = 13; // Adjust the font size (20) as needed for the name
+        int nameSize = 14; // Adjust the font size (20) as needed for the name
         int descriptionSize = 10; // Adjust the font size (16) as needed for the description
 
-        spannableStringBuilder.setSpan(new AbsoluteSizeSpan(nameSize, true), 0, namePart.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannableStringBuilder.setSpan(new AbsoluteSizeSpan(descriptionSize, true), namePart.length() + 1, spannableStringBuilder.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableStringBuilder.setSpan(new AbsoluteSizeSpan(nameSize, true), 0, text1.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spannableStringBuilder.setSpan(new AbsoluteSizeSpan(descriptionSize, true), text1.length() + 1, spannableStringBuilder.length(), SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         // Customize the TextView's appearance
-        TextView textView = new TextView(this);
+        TextView textView = new TextView(getApplicationContext());
         textView.setText(spannableStringBuilder);
 
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
+        textView.setPadding(15, 15, 15, 15); // Set padding values (left, top, right, bottom)
 
-        layoutParams.setMargins(0, 0, 0, 16); // You can adjust the margin (16) to control the spacing
+        layoutParams.setMargins(0, 0, 0, 12); // You can adjust the margin (16) to control the spacing
 
         // Set layout parameters
         textView.setLayoutParams(layoutParams);
 
-        textView.setPadding(8, 8, 8, 8); // Add padding
-        textView.setBackground(ContextCompat.getDrawable(this, R.drawable.border_bg));
 
         // Set text color based on the "isDangerous" value
         if (isDangerous) {
-            textView.setTextColor(Color.RED);
+            textView.setTextColor(Color.parseColor("#FF3333"));
+            dangerouspermissioncount++;
         } else {
         }
 
+        CardView cardView = new CardView(getApplicationContext());
+
+        int paddingValue = 8; // Define in resources
+        cardView.setUseCompatPadding(true); // Add padding for pre-Lollipop devices
+        cardView.setContentPadding(paddingValue, paddingValue, paddingValue, paddingValue);
+
+// Set margins for the CardView using LayoutParams
+        LinearLayout.LayoutParams layoutParams1 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+
+// Set margins for the CardView (left, top, right, bottom)
+        int marginValue = 10; // Define in resources
+        layoutParams1.setMargins(0, 0, 0, marginValue);
+        cardView.setLayoutParams(layoutParams1);
+
+
+        cardView.setCardBackgroundColor(Color.parseColor("#B6D0E2"));
+        cardView.setRadius(20);
+        if(grantedlist.containsKey(fullandroidpermission))
+        {
+            // Set the modified drawable as the background
+            cardView.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.border_bg_grant));
+            cardView.setCardBackgroundColor(Color.parseColor("#B6D0E2"));
+
+        }
+
+        cardView.addView(textView);
+
+
         // Add the formatted TextView to the permissionListLinearLayout
-        permissionListLinearLayout.addView(textView);
+        permissionListLinearLayout.addView(cardView);
     }
 
 
     private void addTrackerTextView(String trackerData) {
-        TextView textView = new TextView(this);
+        TextView textView = new TextView(getApplicationContext());
         textView.setText(trackerData);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -193,11 +277,38 @@ public class AmazonActivity extends AppCompatActivity {
 
         // Customize the TextView's appearance
 //        textView.setTextColor(getResources().getColor(android.R.color.white)); // Set text color
+        textView.setTextSize(13); // Set text size
         textView.setPadding(8, 8, 8, 8); // Add padding
-        textView.setBackground(ContextCompat.getDrawable(this, R.drawable.border_bg));
 
-        trackerListLinearLayout.addView(textView);
+
+        CardView cardView = new CardView(getApplicationContext());
+
+        int paddingValue = 10; // Define in resources
+        cardView.setUseCompatPadding(true); // Add padding for pre-Lollipop devices
+        cardView.setContentPadding(paddingValue, paddingValue, paddingValue, paddingValue);
+
+// Set margins for the CardView using LayoutParams
+        LinearLayout.LayoutParams layoutParams1 = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+
+// Set margins for the CardView (left, top, right, bottom)
+        int marginValue = 12; // Define in resources
+        layoutParams1.setMargins(0, 0, 0, marginValue);
+        cardView.setLayoutParams(layoutParams1);
+
+
+        cardView.setCardBackgroundColor(Color.parseColor("#B6D0E2"));
+        cardView.setRadius(20);
+
+        cardView.addView(textView);
+        trackercount++;
+
+
+        trackerListLinearLayout.addView(cardView);
     }
+
 
 
 }
