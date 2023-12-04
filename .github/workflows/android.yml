@@ -3,36 +3,30 @@ name: Android Build
 on:
   push:
     branches:
-      - '*'  # Run on all branches
+      - main
   pull_request:
     branches:
-      - '*'  # Run on all branches
+      - main
 
 jobs:
   build:
-    name: Build Only
+
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Repository
       uses: actions/checkout@v2
 
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
-        distribution: 'adopt'
         java-version: '11'
 
-    - name: Cache Gradle dependencies
-      uses: actions/cache@v2
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
       with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+        sdk-platform: 'android-34'
 
-    - name: permission to Gradle
-      run:  chmod +x gradlew
-      
     - name: Build with Gradle
-      run: ./gradlew assembleDebug  # Adjust the command to build your app
+      run: |
+        ./gradlew clean build
