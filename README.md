@@ -59,4 +59,5 @@ Our motivation stems from three key aspects:
 - **Integration with TrackerControl**: Enhance user privacy by integrating with privacy-focused tools like TrackerControl.
 
 ## App Screenshots
-_Insert screenshots here_
+![q](https://github.com/vineeth-dasi/Skill_Permission_Analyzer/assets/36439540/bfbe18a0-a906-449c-9e89-d09af34a0e28)
+![w](https://github.com/vineeth-dasi/Skill_Permission_Analyzer/assets/36439540/02af7a4f-02f8-41c5-9b04-eea4364cb061)
